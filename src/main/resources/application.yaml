@@ -1,0 +1,106 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      connectionTimeout: 20000
+      maximumPoolSize: 5
+
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+  main:
+    allow-bean-definition-overriding: true
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: INFO
+        type:
+          descriptor:
+            sql:
+              BasicBinder: INFO
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: INFO
+            StatementCreatorUtils: INFO
+      
+app:
+  url: ${APP_URL}
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    no-reply-email-adress: ${MAIL_NO_REPLY_EMAIL_ADRESS}
+    host: smtp.sendgrid.net
+    port: 587
+
+---
+
+spring:
+  profiles:
+    active: prod
+
+--- 
+
+spring:
+  profiles:
+    active: qa
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: TRACE
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: TRACE
+            StatementCreatorUtils: TRACE
+
+---
+
+spring:
+  profiles:
+    active: local
+  
+  thymeleaf:
+    cache: false
+
+  mustache:
+    cache: false
+
+  groovy:
+    template:
+      cache: false
+
+  devtools:
+    livereload:
+      #set false to disable live reload
+      enabled: true
+    
+    restart:
+      log-condition-evaluation-delta: false
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: TRACE
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+      springframework:
+        jdbc:
+          core:
+            JdbcTemplate: TRACE
+            StatementCreatorUtils: TRACE
