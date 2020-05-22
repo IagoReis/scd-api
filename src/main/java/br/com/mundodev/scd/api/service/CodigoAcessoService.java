@@ -6,5 +6,7 @@ import br.com.mundodev.scd.api.model.CodigoAcesso;
 public interface CodigoAcessoService {
 
 	CodigoAcesso createCodigoAcesso(FuncionarioApi funcionario);
+	
+	CodigoAcesso getByFuncionario(FuncionarioApi funcionario);
 
 }

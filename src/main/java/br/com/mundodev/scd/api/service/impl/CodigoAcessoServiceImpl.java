@@ -1,6 +1,7 @@
 package br.com.mundodev.scd.api.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 		
 		codigoAcesso.setCodigo(codigo);
 		codigoAcesso.setIdConvenio(1L);
-		codigoAcesso.setIdTomador(Long.valueOf(funcionario.getId()));
+		codigoAcesso.setIdTomador(funcionario.getId());
 		codigoAcesso.setDataGeracao(dataGeracao);
 		codigoAcesso.setDataExpiracao(dataExpiracao);
 		codigoAcesso.setTipoSituacao("A");
@@ -45,6 +46,14 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 		mailer.enviar(funcionario.getEmail(), "Código de acesso", String.format("Seu código de acesso é %s", save.getCodigo()));
 		
 		return save;
+	}
+
+	@Override
+	public CodigoAcesso getByFuncionario(final FuncionarioApi funcionario) {
+		
+		final Optional<CodigoAcesso> codigoAcessoOptional = codigoAcessoRepository.findFirstByIdConvenioAndIdTomador(1L, funcionario.getId());
+		
+		return codigoAcessoOptional.get();
 	}
 
 }

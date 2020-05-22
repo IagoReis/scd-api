@@ -15,7 +15,7 @@ public class FuncionarioApi implements Serializable {
 
 	private static final long serialVersionUID = 8705300889328659514L;
 	
-	private String id;
+	private Long id;
 	private String nome;
 	private String cpf;
 	private String matricula;
