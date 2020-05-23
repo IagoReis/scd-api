@@ -1,4 +1,4 @@
-package br.com.mundodev.scd.api.config;
+package br.com.mundodev.scd.api.enumeration;
 
 public enum AppStatus {
 	

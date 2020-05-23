@@ -13,6 +13,7 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import br.com.mundodev.scd.api.enumeration.StatusCodigoAcesso;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Entity(name = "codigo_acesso")
 public class CodigoAcesso implements Serializable {
 
-	private static final String SEQUENCE_NAME = "";
+	private static final String SEQUENCE_NAME = "cust_codigo_acesso_id_seq";
 	
 	private static final long serialVersionUID = 9142149358160352241L;
 	
@@ -36,17 +37,14 @@ public class CodigoAcesso implements Serializable {
 	@SequenceGenerator(sequenceName = "codigo_acesso_id_seq", name = SEQUENCE_NAME, initialValue = 1, allocationSize = 1)
 	private Long id;
 	
-	@Column(name = "id_convenio", nullable = false)
-	private Long idConvenio;
-	
 	@Column(name = "id_tomador", nullable = false)
 	private Long idTomador;
 	
 	@Column(name = "codigo", nullable = false)
 	private String codigo;
 	
-	@Column(name = "tp_situacao", nullable = false)
-	private String tipoSituacao;
+	@Column(name = "status", nullable = false)
+	private StatusCodigoAcesso status;
 	
 	@CreationTimestamp
 	@Column(name = "dt_geracao", nullable = false)

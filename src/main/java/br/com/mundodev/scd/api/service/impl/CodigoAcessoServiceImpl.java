@@ -1,11 +1,13 @@
 package br.com.mundodev.scd.api.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import br.com.mundodev.scd.api.domain.FuncionarioApi;
+import br.com.mundodev.scd.api.enumeration.StatusCodigoAcesso;
 import br.com.mundodev.scd.api.mail.Mailer;
 import br.com.mundodev.scd.api.model.CodigoAcesso;
 import br.com.mundodev.scd.api.repository.CodigoAcessoRepository;
@@ -27,6 +29,9 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 	@Override
 	public CodigoAcesso createCodigoAcesso(final FuncionarioApi funcionario) {
 		
+		cancelaCodigoAcessoPendenteByFuncionario(funcionario);
+		validaCodigoAcessoAtivoByFuncionario(funcionario);
+		
 		final String codigo = AppUtils.getRandomNumberString();
 		
 		final LocalDateTime dataGeracao = LocalDateTime.now();
@@ -35,11 +40,10 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 		final var codigoAcesso = new CodigoAcesso();
 		
 		codigoAcesso.setCodigo(codigo);
-		codigoAcesso.setIdConvenio(1L);
 		codigoAcesso.setIdTomador(funcionario.getId());
 		codigoAcesso.setDataGeracao(dataGeracao);
 		codigoAcesso.setDataExpiracao(dataExpiracao);
-		codigoAcesso.setTipoSituacao("A");
+		codigoAcesso.setStatus(StatusCodigoAcesso.PENDENTE);
 		
 		final CodigoAcesso save = codigoAcessoRepository.save(codigoAcesso);
 		
@@ -47,13 +51,60 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 		
 		return save;
 	}
-
+	
 	@Override
-	public CodigoAcesso getByFuncionario(final FuncionarioApi funcionario) {
+	public Optional<CodigoAcesso> getCodigoAcessoPendenteByFuncionario(final FuncionarioApi funcionario) {
 		
-		final Optional<CodigoAcesso> codigoAcessoOptional = codigoAcessoRepository.findFirstByIdConvenioAndIdTomador(1L, funcionario.getId());
+		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdTomadorAndStatus(funcionario.getId(), StatusCodigoAcesso.PENDENTE);
 		
-		return codigoAcessoOptional.get();
+		final Optional<CodigoAcesso> result = codigoAcessoList.isEmpty() ? Optional.empty() : Optional.of(codigoAcessoList.get(0));
+		
+		return result;
+	}
+	
+	@Override
+	public Optional<CodigoAcesso> getCodigoAcessoAtivoByFuncionario(final FuncionarioApi funcionario) {
+		
+		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdTomadorAndStatus(funcionario.getId(), StatusCodigoAcesso.ATIVO);
+		
+		final Optional<CodigoAcesso> result = codigoAcessoList.isEmpty() ? Optional.empty() : Optional.of(codigoAcessoList.get(0));
+		
+		return result;
+	}
+	
+	@Override
+	public List<CodigoAcesso> getCodigoAcessoByFuncionarioAndStatus(final FuncionarioApi funcionario, final StatusCodigoAcesso status) {
+		
+		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdTomadorAndStatus(funcionario.getId(), status);
+		
+		return codigoAcessoList;
+	}
+	
+	@Override
+	public void updateStatusCodigoAcesso(final CodigoAcesso codigoAcesso, final StatusCodigoAcesso newStatus) {
+		
+		codigoAcesso.setStatus(newStatus);
+		
+		codigoAcessoRepository.save(codigoAcesso);
 	}
 
+	@Override
+	public void cancelaCodigoAcessoPendenteByFuncionario(final FuncionarioApi funcionario) {
+		
+		final List<CodigoAcesso> codigoAcessoList = getCodigoAcessoByFuncionarioAndStatus(funcionario, StatusCodigoAcesso.PENDENTE);
+		
+		for (final CodigoAcesso codigoAcesso : codigoAcessoList) {
+			updateStatusCodigoAcesso(codigoAcesso, StatusCodigoAcesso.CANCELADO);
+		}		
+	}
+	
+	@Override
+	public void validaCodigoAcessoAtivoByFuncionario(final FuncionarioApi funcionario) {
+		
+		final List<CodigoAcesso> codigoAcessoList = getCodigoAcessoByFuncionarioAndStatus(funcionario, StatusCodigoAcesso.ATIVO);
+		
+		for (final CodigoAcesso codigoAcesso : codigoAcessoList) {
+			updateStatusCodigoAcesso(codigoAcesso, StatusCodigoAcesso.VALIDADO);
+		}		
+	}
 }

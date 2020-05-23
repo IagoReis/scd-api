@@ -1,5 +1,7 @@
 package br.com.mundodev.scd.api.controller;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,9 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.mundodev.scd.api.config.AppStatus;
 import br.com.mundodev.scd.api.domain.AppResponse;
 import br.com.mundodev.scd.api.domain.FuncionarioApi;
+import br.com.mundodev.scd.api.enumeration.AppStatus;
 import br.com.mundodev.scd.api.service.CodigoAcessoService;
 import br.com.mundodev.scd.api.service.FuncionarioService;
 
@@ -31,18 +33,17 @@ public class CodigoAcessoController {
 		this.codigoAcessoService = codigoAcessoService;
 	}
 
-	@PostMapping("/convenio/{convenio}/login/{login}")
-	public ResponseEntity<AppResponse<String>> createPassCode(final @PathVariable Long convenio,
-			final @PathVariable String login) {
+	@PostMapping("/login/{login}")
+	public ResponseEntity<AppResponse<String>> createPassCode(final @PathVariable String login) {
 
-		logger.info("Recebido requisição para criar código de acesso para convênio: {} e tomador: {}", convenio, login);
+		logger.info("Recebido requisição para criar código de acesso para o tomador: {}", login);
 		
-		final FuncionarioApi funcionario = funcionarioService.getFuncionarioByLogin(login);
+		final Optional<FuncionarioApi> funcionarioOptional = funcionarioService.getFuncionarioByLogin(login);
 		
-		logger.info("{}", funcionario);
+		logger.info("{}", funcionarioOptional);
 		
-		if (funcionario != null) {
-			codigoAcessoService.createCodigoAcesso(funcionario);
+		if (funcionarioOptional.isPresent()) {
+			codigoAcessoService.createCodigoAcesso(funcionarioOptional.get());
 		}
 
 		final var appResponse = new AppResponse<String>("", null, AppStatus.SUCCESS);

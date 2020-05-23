@@ -1,4 +1,4 @@
-package br.com.mundodev.scd.api.auth;
+package br.com.mundodev.scd.api.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -1,9 +1,11 @@
 package br.com.mundodev.scd.api.service;
 
+import java.util.Optional;
+
 import br.com.mundodev.scd.api.domain.FuncionarioApi;
 
 public interface FuncionarioService {
 
-	FuncionarioApi getFuncionarioByLogin(String login);
+	Optional<FuncionarioApi> getFuncionarioByLogin(String login);
 
 }

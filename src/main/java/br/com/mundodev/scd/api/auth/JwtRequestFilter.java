@@ -14,8 +14,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import br.com.mundodev.scd.api.auth.service.AppUserDetailsService;
-
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 	private AppUserDetailsService appUserDetailsService;
@@ -35,11 +33,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 			final var token = authorizationHeader.substring(7);
-			final var username = jwtTokenConfig.getUsernameFromToken(token);
+			final var login = jwtTokenConfig.getLoginFromToken(token);
 
-			if (username != null && !username.isBlank()
+			if (login != null && !login.isBlank()
 					&& SecurityContextHolder.getContext().getAuthentication() == null) {
-				final var userDetails = appUserDetailsService.loadUserByUsername(username);
+				final var userDetails = appUserDetailsService.loadUserByUsername(login);
 				final var isTokenValid = jwtTokenConfig.isTokenValid(token, userDetails);
 
 				if (isTokenValid) {

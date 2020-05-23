@@ -1,11 +1,10 @@
-package br.com.mundodev.scd.api.auth;
+package br.com.mundodev.scd.api.domain;
 
 import java.util.Collection;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import br.com.mundodev.scd.api.domain.FuncionarioApi;
 import br.com.mundodev.scd.api.model.CodigoAcesso;
 import lombok.Getter;
 import lombok.ToString;

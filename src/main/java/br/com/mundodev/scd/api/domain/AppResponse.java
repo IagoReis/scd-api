@@ -2,7 +2,7 @@ package br.com.mundodev.scd.api.domain;
 
 import java.io.Serializable;
 
-import br.com.mundodev.scd.api.config.AppStatus;
+import br.com.mundodev.scd.api.enumeration.AppStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

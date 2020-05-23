@@ -1,5 +1,7 @@
 package br.com.mundodev.scd.api.service.impl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +20,13 @@ public class FuncionarioServiceImpl implements FuncionarioService {
 	}
 	
 	@Override
-	public FuncionarioApi getFuncionarioByLogin(final String login) {
-		return apiIntegration.getFuncionarioByLogin(login);
+	public Optional<FuncionarioApi> getFuncionarioByLogin(final String login) {
+		
+		final FuncionarioApi funcionario = apiIntegration.getFuncionarioByLogin(login);
+		
+		final Optional<FuncionarioApi> result = funcionario != null ? Optional.of(funcionario) : Optional.empty();
+		
+		return result;
 	}
 	
 }

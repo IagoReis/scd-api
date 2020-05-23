@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import br.com.mundodev.scd.api.domain.AppUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -27,7 +28,7 @@ public class JwtTokenConfig implements Serializable {
 	public String generateToken(final UserDetails userDetails) {
 		
 		final var claims = new HashMap<String, Object>();
-		final var token = generateToken(claims, userDetails.getUsername());
+		final var token = generateToken(claims, userDetails.getUsername().concat(":").concat(userDetails.getPassword()));
 
 		return token;
 	}
@@ -85,18 +86,46 @@ public class JwtTokenConfig implements Serializable {
 		return isTokenExpired;
 	}
 
-	public String getUsernameFromToken(final String token) {
+	public String getSubjectFromToken(final String token) {
 		
-		final var username = getClaimFromToken(token, Claims::getSubject);
+		final var subject = getClaimFromToken(token, Claims::getSubject);
 
-		return username;
+		return subject;
+	}
+	
+	public String getLoginFromToken(final String token) {
+		
+		final var subject = getSubjectFromToken(token);
+		
+		final var subjectSplit = subject.split(":");
+		
+		if (subjectSplit == null || subjectSplit.length != 2) {
+			return null;
+		}
+
+		return subjectSplit[0];
+	}
+	
+	public String getCodigoFromToken(final String token) {
+		
+		final var subject = getSubjectFromToken(token);
+		
+		final var subjectSplit = subject.split(":");
+		
+		if (subjectSplit == null || subjectSplit.length != 2) {
+			return null;
+		}
+
+		return subjectSplit[1];
 	}
 
-	public Boolean isTokenValid(final String token, final UserDetails userDetails) {
+	public Boolean isTokenValid(final String token, final AppUser userDetails) {
 		
-		final var username = getUsernameFromToken(token);
-		final var isTokenValid = (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+		final var login = getLoginFromToken(token);
+		final var codigo = getCodigoFromToken(token);
+		final var isTokenValid = (!isTokenExpired(token) && login.equals(userDetails.getUsername()) && codigo.equals(userDetails.getPassword()));
 
 		return isTokenValid;
 	}
+	
 }
