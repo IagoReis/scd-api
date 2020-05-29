@@ -15,13 +15,22 @@ public class AppUser extends User {
 
 	private static final long serialVersionUID = -3073491871097658141L;
 	
-	private FuncionarioApi funcionario;
+	private Tomador tomador;	
 	private CodigoAcesso codigoAcesso;
 
-	public AppUser(final FuncionarioApi funcionario, final CodigoAcesso codigoAcesso, final Collection<? extends GrantedAuthority> authorities) {
-		super(funcionario.getLogin(), codigoAcesso.getCodigo(), authorities);
+	public AppUser(final Tomador tomador, final CodigoAcesso codigoAcesso, final Collection<? extends GrantedAuthority> authorities) {
 		
-		this.funcionario = funcionario;
+		super(String.format("%s:%s:%s", tomador.getConvenio().getId(), tomador.getLogin(), codigoAcesso.getCodigo()), codigoAcesso.getCodigo(), authorities);
+	
+		this.tomador = tomador;
+		this.codigoAcesso = codigoAcesso;
+	}
+	
+	public AppUser(final String username, final String password, final Collection<? extends GrantedAuthority> authorities, final Tomador tomador, final CodigoAcesso codigoAcesso) {
+		
+		super(username, password, authorities);
+	
+		this.tomador = tomador;
 		this.codigoAcesso = codigoAcesso;
 	}
 

@@ -38,7 +38,13 @@ app:
     no-reply-email-adress: ${MAIL_NO_REPLY_EMAIL_ADRESS}
     host: smtp.sendgrid.net
     port: 587
-
+  codigo-acesso:
+    maximo-horas-pendente: 3
+    maximo-horas-ativo: 3
+  token:
+    maximo-horas-ativo: 3
+    secret-key: ${SECRET_KEY}
+    
 ---
 
 spring:

@@ -29,22 +29,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response,
 			final FilterChain filterChain) throws ServletException, IOException {
+		
 		final var authorizationHeader = request.getHeader("Authorization");
 
 		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 			final var token = authorizationHeader.substring(7);
-			final var login = jwtTokenConfig.getLoginFromToken(token);
+			final var authData = jwtTokenConfig.getSubjectFromToken(token);
 
-			if (login != null && !login.isBlank()
-					&& SecurityContextHolder.getContext().getAuthentication() == null) {
-				final var userDetails = appUserDetailsService.loadUserByUsername(login);
+			if (authData != null && !authData.isBlank() && SecurityContextHolder.getContext().getAuthentication() == null) {
+				final var userDetails = appUserDetailsService.loadUserByUsername(authData);
 				final var isTokenValid = jwtTokenConfig.isTokenValid(token, userDetails);
-
+				
 				if (isTokenValid) {
 					final var usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails,
 							null, userDetails.getAuthorities());
+					
 					final var webAuthenticationDetailsSource = new WebAuthenticationDetailsSource()
 							.buildDetails(request);
+					
 					usernamePasswordAuthenticationToken.setDetails(webAuthenticationDetailsSource);
 					SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 				}

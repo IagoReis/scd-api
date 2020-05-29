@@ -1,5 +1,6 @@
 package br.com.mundodev.scd.api.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,10 @@ import br.com.mundodev.scd.api.model.CodigoAcesso;
 @Repository
 public interface CodigoAcessoRepository extends JpaRepository<CodigoAcesso, Long> {
 
-	List<CodigoAcesso> findByIdTomadorAndStatus(final Long idTomador, final StatusCodigoAcesso status);
+	List<CodigoAcesso> findByIdConvenioAndIdTomador(final Long idConvenio, final Long idTomador);
+	
+	List<CodigoAcesso> findByIdConvenioAndIdTomadorAndStatus(final Long idConvenio, final Long idTomador, final StatusCodigoAcesso status);
+
+	List<CodigoAcesso> findAllByStatusAndDataExpiracaoBefore(final StatusCodigoAcesso status, final LocalDateTime dataExpiracao);
 	
 }

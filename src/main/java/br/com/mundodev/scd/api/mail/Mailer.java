@@ -30,7 +30,7 @@ public class Mailer {
 		mailMessage.setSubject(subject);
 		mailMessage.setText(text);
 		
-		//mailSender.send(mailMessage);		
+		mailSender.send(mailMessage);		
 	}
 	
 }

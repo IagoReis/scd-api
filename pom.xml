@@ -37,6 +37,16 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-logging</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -97,6 +107,12 @@
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>com.innoventsolutions.birt.runtime</groupId>
+			<artifactId>org.eclipse.birt.runtime_4.8.0-20180626</artifactId>
+			<version>4.8.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -104,6 +120,65 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.33.0</version>
+
+				<configuration>
+					<images>
+						<image>
+							<name>iagoreis/${project.artifactId}</name>
+							<alias>${project.artifactId}</alias>
+
+							<build>
+								<from>adoptopenjdk/openjdk14-openj9:alpine-slim</from>
+
+								<tags>
+									<tag>latest</tag>
+									<tag>${project.version}</tag>
+								</tags>
+
+								<entryPoint>
+									<exec>
+										<arg>java</arg>
+										<arg>-Djava.security.egd=file:/dev/./urandom</arg>
+										<arg>-XX:+IdleTuningGcOnIdle</arg>
+										<arg>-Xtune:virtualized</arg>
+										<arg>-XX:MinRAMPercentage=20</arg>
+										<arg>-XX:MaxRAMPercentage=80</arg>
+										<arg>-jar</arg>
+										<arg>app.jar</arg>
+									</exec>
+								</entryPoint>
+
+								<assembly>
+									<targetDir>/</targetDir>
+									<inline>
+										<dependencySets>
+											<dependencySet>
+												<includes>
+													<include>${project.groupId}:${project.artifactId}</include>
+												</includes>
+												<outputDirectory>.</outputDirectory>
+												<outputFileNameMapping>app.jar</outputFileNameMapping>
+											</dependencySet>
+										</dependencySets>
+									</inline>
+								</assembly>
+
+								<runCmds>
+									<runCmd>apk update; apk del openssl --no-cache;</runCmd>
+									<runCmd>apk add --no-cache tcpdump curl tzdata openssl procps net-tools vim</runCmd>
+									<runCmd>cp /usr/share/zoneinfo/Brazil/East /etc/localtime;</runCmd>
+									<runCmd>echo 'America/Sao_Paulo' > /etc/timezone</runCmd>
+								</runCmds>
+							</build>
+						</image>
+					</images>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

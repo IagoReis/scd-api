@@ -9,31 +9,40 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import br.com.mundodev.scd.api.domain.AppUser;
-import br.com.mundodev.scd.api.domain.FuncionarioApi;
+import br.com.mundodev.scd.api.domain.Tomador;
+import br.com.mundodev.scd.api.enumeration.AuthenticationStringEnum;
+import br.com.mundodev.scd.api.enumeration.ConvenioEnum;
 import br.com.mundodev.scd.api.model.CodigoAcesso;
 import br.com.mundodev.scd.api.service.CodigoAcessoService;
-import br.com.mundodev.scd.api.service.FuncionarioService;
+import br.com.mundodev.scd.api.service.TomadorService;
 
 @Service
 public class AppUserDetailsService implements UserDetailsService {
 
 	@Autowired
-	private FuncionarioService funcionarioService;
+	private TomadorService tomadorService;
 	
 	@Autowired
 	private CodigoAcessoService codigoAcessoService;
+	
+	@Autowired
+	private JwtTokenConfig jwtTokenConfig;;
 
 	@Override
-	public AppUser loadUserByUsername(final String login) throws UsernameNotFoundException {
+	public AppUser loadUserByUsername(final String authData) throws UsernameNotFoundException {
 		
-		final Optional<FuncionarioApi> funcionarioOptional = funcionarioService.getFuncionarioByLogin(login);
+		final var authenticationData = jwtTokenConfig.getAuthenticationDataFromString(authData);
+		final ConvenioEnum convenio = ConvenioEnum.fromId(authenticationData.get().get(AuthenticationStringEnum.CONVENIO).get());
+		final String tomador = authenticationData.get().get(AuthenticationStringEnum.TOMADOR).get();
 		
-		if (funcionarioOptional.isEmpty()) {
+		final Optional<Tomador> tomadorOptional = tomadorService.getTomador(convenio, tomador);
+		
+		if (tomadorOptional.isEmpty()) {
 			throw new UsernameNotFoundException("Usuário não encontrado");
 		}
 		
-		final Optional<CodigoAcesso> codigoAcessoPendenteOptional = codigoAcessoService.getCodigoAcessoPendenteByFuncionario(funcionarioOptional.get());
-		final Optional<CodigoAcesso> codigoAcessoAtivoOptional = codigoAcessoService.getCodigoAcessoAtivoByFuncionario(funcionarioOptional.get());
+		final Optional<CodigoAcesso> codigoAcessoPendenteOptional = codigoAcessoService.getCodigoAcessoPendenteByTomador(tomadorOptional.get());
+		final Optional<CodigoAcesso> codigoAcessoAtivoOptional = codigoAcessoService.getCodigoAcessoAtivoByFuncionario(tomadorOptional.get());
 		
 		if (codigoAcessoAtivoOptional.isEmpty() && codigoAcessoPendenteOptional.isEmpty()) {
 			throw new UsernameNotFoundException("Usuário não encontrado");
@@ -41,21 +50,9 @@ public class AppUserDetailsService implements UserDetailsService {
 		
 		final var codigoAcesso = codigoAcessoAtivoOptional.isPresent() ? codigoAcessoAtivoOptional.get() : codigoAcessoPendenteOptional.get();
 		
-		final var user = new AppUser(funcionarioOptional.get(), codigoAcesso, new HashSet<>());
+		final var user = new AppUser(authData, codigoAcesso.getCodigo(), new HashSet<>(), tomadorOptional.get(), codigoAcesso);
 		
 		return user;
 	}
-
-	public AppUser loadUserByUsernameOnly(String username) {
-		
-		final Optional<FuncionarioApi> funcionarioOptional = funcionarioService.getFuncionarioByLogin(username);
-		
-		if (funcionarioOptional.isEmpty()) {
-			throw new UsernameNotFoundException("Usuário não encontrado");
-		}
-		
-		final var user = new AppUser(funcionarioOptional.get(), new CodigoAcesso(), new HashSet<>());
-		
-		return user;
-	}
+	
 }

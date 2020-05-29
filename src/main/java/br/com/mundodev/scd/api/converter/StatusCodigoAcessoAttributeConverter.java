@@ -1,4 +1,4 @@
-package br.com.mundodev.scd.api.model;
+package br.com.mundodev.scd.api.converter;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
