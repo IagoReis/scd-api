@@ -148,7 +148,7 @@
 										<arg>-XX:+IdleTuningGcOnIdle</arg>
 										<arg>-Xtune:virtualized</arg>
 										<arg>-XX:MinRAMPercentage=20</arg>
-										<arg>-XX:MaxRAMPercentage=80</arg>
+										<arg>-XX:MaxRAMPercentage=70</arg>
 										<arg>-jar</arg>
 										<arg>app.jar</arg>
 									</exec>

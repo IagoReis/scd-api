@@ -35,6 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers("/codigo-acesso/**").permitAll()
 				.anyRequest().authenticated()
 				.and()
+			.logout().disable()
 			.sessionManagement()
 			.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 

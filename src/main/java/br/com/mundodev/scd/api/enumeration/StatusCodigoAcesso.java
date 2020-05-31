@@ -4,7 +4,7 @@ public enum StatusCodigoAcesso {
 	
 	PENDENTE,
 	ATIVO,
-	VALIDADO,
+	ENCERRADO,
 	EXPIRADO,
 	CANCELADO;
 	

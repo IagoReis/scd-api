@@ -10,23 +10,23 @@ import br.com.mundodev.scd.api.model.CodigoAcesso;
 public interface CodigoAcessoService {
 
 	CodigoAcesso createCodigoAcesso(Tomador tomador);
+	
+	CodigoAcesso createCodigoAcesso(Tomador tomador, String clientIp);
 
-	Optional<CodigoAcesso> getCodigoAcessoPendenteByTomador(Tomador tomador);
+	Optional<CodigoAcesso> getCodigoAcessoPendente(Tomador tomador);
 
 	List<CodigoAcesso> getCodigoAcessoByTomadorAndStatus(Tomador tomador, StatusCodigoAcesso status);
 
-	void updateStatusCodigoAcesso(CodigoAcesso codigoAcesso, StatusCodigoAcesso newStatus);
+	void cancelaCodigoAcessoPendente(Tomador tomador);
 
-	void cancelaCodigoAcessoPendenteByFuncionario(Tomador tomador);
-
-	void validaCodigoAcessoAtivoByFuncionario(Tomador tomador);
-
-	Optional<CodigoAcesso> getCodigoAcessoAtivoByFuncionario(Tomador tomador);
+	Optional<CodigoAcesso> getCodigoAcessoAtivo(Tomador tomador);
 
 	void updateStatus(CodigoAcesso codigoAcesso, StatusCodigoAcesso status);
 
 	void ativaCodigoAcesso(CodigoAcesso codigoAcesso);
 	
 	void encerraCodigoAcesso(CodigoAcesso codigoAcesso);
+
+	void encerraCodigoAcessoAtivo(Tomador tomador);
 
 }

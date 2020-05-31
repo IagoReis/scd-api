@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import br.com.mundodev.scd.api.enumeration.StatusCodigoAcesso;
 import br.com.mundodev.scd.api.repository.CodigoAcessoRepository;
+import br.com.mundodev.scd.api.service.AcessoService;
 import br.com.mundodev.scd.api.service.CodigoAcessoService;
 
 @Component
@@ -17,32 +18,47 @@ public class CodigoAcessoScheduled {
 	
 	private CodigoAcessoRepository codigoAcessoRepository;	
 	private CodigoAcessoService codigoAcessoService;
+	private AcessoService acessoService;
 	
 	@Autowired
 	public CodigoAcessoScheduled(
 			final CodigoAcessoRepository codigoAcessoRepository,			
-			final CodigoAcessoService codigoAcessoService
+			final CodigoAcessoService codigoAcessoService,
+			final AcessoService acessoService
 		) {
 		this.codigoAcessoRepository = codigoAcessoRepository;
 		this.codigoAcessoService = codigoAcessoService;
+		this.acessoService = acessoService;
 	}
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 	
-	@Scheduled(cron = "0 */1 * * * *")
-	public void updateStatusCodigoAcesso() {
+	@Scheduled(cron = "0 */5 * * * *")
+	public void encerraCodigoAcessoPendente() {
 		
-		logger.info("Alterando o status dos códigos de acesso de {} para {}", StatusCodigoAcesso.PENDENTE, StatusCodigoAcesso.EXPIRADO);
+		logger.info("JOB encerraCodigoAcessoPendente");
+		logger.info("Encerrando os códigos de acesso de com status {} que estejam expirados", StatusCodigoAcesso.PENDENTE);
 		
-		final var codigoAcessoPendenteList = codigoAcessoRepository.findAllByStatusAndDataExpiracaoBefore(StatusCodigoAcesso.PENDENTE, LocalDateTime.now());
+		final var codigosAcesso = codigoAcessoRepository.findAllByStatusCodigoAcessoAndDataExpiracaoBefore(StatusCodigoAcesso.PENDENTE, LocalDateTime.now());
 		
-		codigoAcessoPendenteList.forEach(codigoAcesso -> codigoAcessoService.updateStatus(codigoAcesso, StatusCodigoAcesso.EXPIRADO));
+		codigosAcesso.forEach(codigoAcesso -> {
+			codigoAcessoService.encerraCodigoAcesso(codigoAcesso);
+			acessoService.encerraAcesso(codigoAcesso, null);
+		});
+	}
+	
+	@Scheduled(cron = "0 */5 * * * *")
+	public void encerraCodigoAcessoAtivo() {
 		
-		logger.info("Alterando o status dos códigos de acesso de {} para {}", StatusCodigoAcesso.ATIVO, StatusCodigoAcesso.VALIDADO);
+		logger.info("JOB encerraCodigoAcessoPendente");
+		logger.info("Encerrando os códigos de acesso de com status {} que estejam expirados", StatusCodigoAcesso.ATIVO);
 		
-		final var codigoAcessoAtivoList = codigoAcessoRepository.findAllByStatusAndDataExpiracaoBefore(StatusCodigoAcesso.ATIVO, LocalDateTime.now());
+		final var codigosAcesso = codigoAcessoRepository.findAllByStatusCodigoAcessoAndDataExpiracaoBefore(StatusCodigoAcesso.ATIVO, LocalDateTime.now());
 		
-		codigoAcessoAtivoList.forEach(codigoAcesso -> codigoAcessoService.updateStatus(codigoAcesso, StatusCodigoAcesso.VALIDADO));
+		codigosAcesso.forEach(codigoAcesso -> {
+			codigoAcessoService.encerraCodigoAcesso(codigoAcesso);
+			acessoService.encerraAcesso(codigoAcesso, null);
+		});
 	}
 	
 }

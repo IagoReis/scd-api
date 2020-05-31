@@ -41,8 +41,8 @@ public class AppUserDetailsService implements UserDetailsService {
 			throw new UsernameNotFoundException("Usuário não encontrado");
 		}
 		
-		final Optional<CodigoAcesso> codigoAcessoPendenteOptional = codigoAcessoService.getCodigoAcessoPendenteByTomador(tomadorOptional.get());
-		final Optional<CodigoAcesso> codigoAcessoAtivoOptional = codigoAcessoService.getCodigoAcessoAtivoByFuncionario(tomadorOptional.get());
+		final Optional<CodigoAcesso> codigoAcessoPendenteOptional = codigoAcessoService.getCodigoAcessoPendente(tomadorOptional.get());
+		final Optional<CodigoAcesso> codigoAcessoAtivoOptional = codigoAcessoService.getCodigoAcessoAtivo(tomadorOptional.get());
 		
 		if (codigoAcessoAtivoOptional.isEmpty() && codigoAcessoPendenteOptional.isEmpty()) {
 			throw new UsernameNotFoundException("Usuário não encontrado");
@@ -50,7 +50,7 @@ public class AppUserDetailsService implements UserDetailsService {
 		
 		final var codigoAcesso = codigoAcessoAtivoOptional.isPresent() ? codigoAcessoAtivoOptional.get() : codigoAcessoPendenteOptional.get();
 		
-		final var user = new AppUser(authData, codigoAcesso.getCodigo(), new HashSet<>(), tomadorOptional.get(), codigoAcesso);
+		final var user = new AppUser(authData, codigoAcesso.getId().getCodigoAcesso(), new HashSet<>(), tomadorOptional.get(), codigoAcesso);
 		
 		return user;
 	}

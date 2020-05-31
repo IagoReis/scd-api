@@ -13,6 +13,7 @@ import br.com.mundodev.scd.api.domain.Tomador;
 import br.com.mundodev.scd.api.enumeration.StatusCodigoAcesso;
 import br.com.mundodev.scd.api.mail.Mailer;
 import br.com.mundodev.scd.api.model.CodigoAcesso;
+import br.com.mundodev.scd.api.model.CodigoAcessoId;
 import br.com.mundodev.scd.api.repository.CodigoAcessoRepository;
 import br.com.mundodev.scd.api.service.CodigoAcessoService;
 import br.com.mundodev.scd.api.utils.AppUtils;
@@ -39,39 +40,48 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 	
 	@Override
 	public CodigoAcesso createCodigoAcesso(final Tomador tomador) {
+		return createCodigoAcesso(tomador, null);
+	}
+	
+	@Override
+	public CodigoAcesso createCodigoAcesso(final Tomador tomador, final String clientIp) {
 		
-		logger.info("Criando código de acesso para o tomador {}", tomador);
+		logger.info("Criando código de acesso para o tomador {} e ip {}", tomador, clientIp);
 		
-		cancelaCodigoAcessoPendenteByFuncionario(tomador);
-		validaCodigoAcessoAtivoByFuncionario(tomador);
+		cancelaCodigoAcessoPendente(tomador);
+		encerraCodigoAcessoAtivo(tomador);
 		
 		final String codigo = AppUtils.getRandomNumberString();
 		
 		final LocalDateTime dataGeracao = LocalDateTime.now();
 		final LocalDateTime dataExpiracao = dataGeracao.plusHours(maximoHorasPendente);
 		
+		final var codigoAcessoId = new CodigoAcessoId();
 		final var codigoAcesso = new CodigoAcesso();
 		
-		codigoAcesso.setCodigo(codigo);
-		codigoAcesso.setIdConvenio(tomador.getConvenio().getId());
-		codigoAcesso.setIdTomador(tomador.getId());
+		codigoAcessoId.setCodigoAcesso(codigo);
+		codigoAcessoId.setIdConvenio(tomador.getConvenio().getId());
+		codigoAcessoId.setIdTomador(tomador.getId());
+		codigoAcesso.setId(codigoAcessoId);
 		codigoAcesso.setDataGeracao(dataGeracao);
 		codigoAcesso.setDataExpiracao(dataExpiracao);
-		codigoAcesso.setStatus(StatusCodigoAcesso.PENDENTE);
+		codigoAcesso.setIp(clientIp);
+		codigoAcesso.setDestinatario(tomador.getEmail());
+		codigoAcesso.setStatusCodigoAcesso(StatusCodigoAcesso.PENDENTE);
 		
 		final CodigoAcesso save = codigoAcessoRepository.save(codigoAcesso);
 		
-		mailer.enviar(tomador.getEmail(), "Código de acesso", String.format("Seu código de acesso é %s", save.getCodigo()));
+		mailer.enviar(tomador.getEmail(), "Código de acesso", String.format("Seu código de acesso é %s", save.getId().getCodigoAcesso()));
 		
 		return save;
 	}
 	
 	@Override
-	public Optional<CodigoAcesso> getCodigoAcessoPendenteByTomador(final Tomador tomador) {
+	public Optional<CodigoAcesso> getCodigoAcessoPendente(final Tomador tomador) {
 		
 		logger.info("Buscando código de acesso PENDENTE do tomador {}", tomador);
 		
-		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdConvenioAndIdTomadorAndStatus(tomador.getConvenio().getId(), tomador.getId(), StatusCodigoAcesso.PENDENTE);
+		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdIdConvenioAndIdIdTomadorAndStatusCodigoAcesso(tomador.getConvenio().getId(), tomador.getId(), StatusCodigoAcesso.PENDENTE);
 		
 		final Optional<CodigoAcesso> result = codigoAcessoList.isEmpty() ? Optional.empty() : Optional.of(codigoAcessoList.get(0));
 		
@@ -79,11 +89,11 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 	}
 	
 	@Override
-	public Optional<CodigoAcesso> getCodigoAcessoAtivoByFuncionario(final Tomador tomador) {
+	public Optional<CodigoAcesso> getCodigoAcessoAtivo(final Tomador tomador) {
 		
 		logger.info("Buscando código de acesso ATIVO do tomador {}", tomador);
 		
-		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdConvenioAndIdTomadorAndStatus(tomador.getConvenio().getId(), tomador.getId(), StatusCodigoAcesso.ATIVO);
+		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdIdConvenioAndIdIdTomadorAndStatusCodigoAcesso(tomador.getConvenio().getId(), tomador.getId(), StatusCodigoAcesso.ATIVO);
 		
 		final Optional<CodigoAcesso> result = codigoAcessoList.isEmpty() ? Optional.empty() : Optional.of(codigoAcessoList.get(0));
 		
@@ -95,39 +105,32 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 		
 		logger.info("Buscando todos códigos de acesso do tomador {} que estejam com o status {}", tomador, status);
 		
-		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdConvenioAndIdTomadorAndStatus(tomador.getConvenio().getId(), tomador.getId(), status);
+		final List<CodigoAcesso> codigoAcessoList = codigoAcessoRepository.findByIdIdConvenioAndIdIdTomadorAndStatusCodigoAcesso(tomador.getConvenio().getId(), tomador.getId(), status);
 		
 		return codigoAcessoList;
 	}
-	
-	//TODO: Verificar se este método está sendo utilizado em mais algum lugar, se não estiver o excluir
-	@Deprecated
-	@Override
-	public void updateStatusCodigoAcesso(final CodigoAcesso codigoAcesso, final StatusCodigoAcesso newStatus) {		
-		updateStatus(codigoAcesso, newStatus);
-	}
 
 	@Override
-	public void cancelaCodigoAcessoPendenteByFuncionario(final Tomador tomador) {
+	public void cancelaCodigoAcessoPendente(final Tomador tomador) {
 		
 		logger.info("Cancelando código de acesso PENDENTE do tomador {}", tomador);
 		
 		final List<CodigoAcesso> codigoAcessoList = getCodigoAcessoByTomadorAndStatus(tomador, StatusCodigoAcesso.PENDENTE);
 		
 		for (final CodigoAcesso codigoAcesso : codigoAcessoList) {
-			updateStatusCodigoAcesso(codigoAcesso, StatusCodigoAcesso.CANCELADO);
-		}		
+			updateStatus(codigoAcesso, StatusCodigoAcesso.CANCELADO);
+		}
 	}
 	
 	@Override
-	public void validaCodigoAcessoAtivoByFuncionario(final Tomador tomador) {
+	public void encerraCodigoAcessoAtivo(final Tomador tomador) {
 		
 		logger.info("Validando código de acesso ATIVO do tomador {}", tomador);
 		
 		final List<CodigoAcesso> codigoAcessoList = getCodigoAcessoByTomadorAndStatus(tomador, StatusCodigoAcesso.ATIVO);
 		
 		for (final CodigoAcesso codigoAcesso : codigoAcessoList) {
-			updateStatusCodigoAcesso(codigoAcesso, StatusCodigoAcesso.VALIDADO);
+			updateStatus(codigoAcesso, StatusCodigoAcesso.ENCERRADO);
 		}		
 	}
 
@@ -142,10 +145,11 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 			
 			final var codigoAcesso = codigoAcessoOptional.get();
 			
-			codigoAcesso.setStatus(status);
+			codigoAcesso.setStatusCodigoAcesso(status);
 			
 			codigoAcessoRepository.save(codigoAcesso);
 		}		
+		
 	}
 
 	@Override
@@ -159,7 +163,7 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 			
 			final var codigoAcesso = codigoAcessoOptional.get();
 			
-			codigoAcesso.setStatus(StatusCodigoAcesso.ATIVO);
+			codigoAcesso.setStatusCodigoAcesso(StatusCodigoAcesso.ATIVO);
 			codigoAcesso.setDataExpiracao(LocalDateTime.now().plusHours(maximoHorasAtivo));
 			
 			codigoAcessoRepository.save(codigoAcesso);
@@ -178,18 +182,15 @@ public class CodigoAcessoServiceImpl implements CodigoAcessoService {
 			
 			final var codigoAcesso = codigoAcessoOptional.get();
 			
-			if (StatusCodigoAcesso.ATIVO.equals(codigoAcesso.getStatus())) {
-				codigoAcesso.setStatus(StatusCodigoAcesso.VALIDADO);
+			if (StatusCodigoAcesso.ATIVO.equals(codigoAcesso.getStatusCodigoAcesso())) {
+				codigoAcesso.setStatusCodigoAcesso(StatusCodigoAcesso.ENCERRADO);
+				codigoAcessoRepository.save(codigoAcesso);
 			}
-			else if (StatusCodigoAcesso.PENDENTE.equals(codigoAcesso.getStatus())) {
-				codigoAcesso.setStatus(StatusCodigoAcesso.CANCELADO);
-			}
-			else {
-				return;
-			}
-			
-			codigoAcessoRepository.save(codigoAcesso);
-		}
-		
+			else if (StatusCodigoAcesso.PENDENTE.equals(codigoAcesso.getStatusCodigoAcesso())) {
+				codigoAcesso.setStatusCodigoAcesso(StatusCodigoAcesso.CANCELADO);
+				codigoAcessoRepository.save(codigoAcesso);
+			}			
+		}		
 	}
+
 }

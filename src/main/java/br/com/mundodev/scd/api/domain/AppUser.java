@@ -20,7 +20,7 @@ public class AppUser extends User {
 
 	public AppUser(final Tomador tomador, final CodigoAcesso codigoAcesso, final Collection<? extends GrantedAuthority> authorities) {
 		
-		super(String.format("%s:%s:%s", tomador.getConvenio().getId(), tomador.getLogin(), codigoAcesso.getCodigo()), codigoAcesso.getCodigo(), authorities);
+		super(String.format("%s:%s:%s", tomador.getConvenio().getId(), tomador.getLogin(), codigoAcesso.getId().getCodigoAcesso()), codigoAcesso.getId().getCodigoAcesso(), authorities);
 	
 		this.tomador = tomador;
 		this.codigoAcesso = codigoAcesso;
